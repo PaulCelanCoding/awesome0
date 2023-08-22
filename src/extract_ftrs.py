@@ -4,13 +4,38 @@ import pandas as pd
 import numpy as np
 from scipy.stats import skew, kurtosis
 
-# Load the data
-# df = pd.read_csv('/mnt/data/eth1h.csv')
-truncated_df = df.iloc[-1000:].reset_index(drop=True)
-
-
+from config import *
+from utils import *
 # Implementing the changes for volume features extraction based on the highs and lows from close prices
 # Volumen feature extractor functions
+
+def mean_value(df, column_name):
+    """Calculate the mean value of a column."""
+    return df[column_name].mean()
+
+def median_value(df, column_name):
+    """Calculate the median value of a column."""
+    return df[column_name].median()
+
+def variance_value(df, column_name):
+    """Calculate the variance of a column."""
+    return df[column_name].var()
+
+def std_dev_value(df, column_name):
+    """Calculate the standard deviation of a column."""
+    return df[column_name].std()
+
+def skewness_value(df, column_name):
+    """Calculate the skewness of a column."""
+    return skew(df[column_name])
+
+def kurtosis_value(df, column_name):
+    """Calculate the kurtosis of a column."""
+    return kurtosis(df[column_name])
+
+def mean_pct_change(df, column_name):
+    """Calculate the mean percentage change of a column."""
+    return df[column_name].pct_change().mean()
 
 def total_volume(df, column_name="Volume"):
     """Calculate the total volume for the segment."""
@@ -189,6 +214,17 @@ feature_extractors_extended = [
     std_dev_value,
 ]
 
+def extract_last_feature(df):
+    """ extracts features for last row in df
+    returns df with features of last row added
+    """
+
+    # !TODO add length assertions
+    df_ = df.iloc[-int(max(feature_lookbacks)*1.2):].reset_index(drop=True)
+    df_feats = extract_features_from_df(df_, lookbacks=feature_lookbacks, feature_extractors=feature_extractors_extended,volume_feature_extractors=volume_feature_extractors, column_name="Close")
+    df_feats = df_feats.iloc[-1:]
+    merged_test =merge_df_with_feature_df(df, df_feats)
+    return merged_test
 
 ## example
 ## augmented_df_volume_updated = extract_features_from_df(df, lookbacks=[6, 24, 4*24, 4*4*24, 4*4*24], feature_extractors=feature_extractors_extended, volume_feature_extractors=volume_feature_extractors)
